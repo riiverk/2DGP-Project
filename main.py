@@ -1,7 +1,6 @@
-from _pyrepl.commands import clear_screen
-
 from pico2d import *
 from UI import *
+import player
 
 def reset_world():
     global world
@@ -24,6 +23,11 @@ def reset_world():
     # gauge.append(p1_gauge)
     # gauge.append(p2_gauge)
     # world.append(gauge)
+
+    player = [jojo, dio]
+    jojo = JoJo()
+    dio = DIO()
+    world.append(player)
 
 def update_world():
     for o in world:
