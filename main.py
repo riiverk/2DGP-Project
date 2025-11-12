@@ -1,6 +1,6 @@
 from pico2d import *
 from UI import *
-import player
+from player import *
 
 def reset_world():
     global world
@@ -11,8 +11,8 @@ def reset_world():
     world.append(background)
 
     health = []
-    p1_health = Health(200)
-    p2_health = Health(600)
+    p1_health = Health(394)
+    p2_health = Health(1194)
     health.append(p1_health)
     health.append(p2_health)
     world.append(health)
@@ -24,9 +24,9 @@ def reset_world():
     # gauge.append(p2_gauge)
     # world.append(gauge)
 
-    player = [jojo, dio]
     jojo = JoJo()
     dio = DIO()
+    player = [jojo, dio]
     world.append(player)
 
 def update_world():
@@ -52,7 +52,7 @@ def handle_events():
 
 running = True
 
-open_canvas()
+open_canvas(1600, 1200)
 reset_world()
 while running:
     handle_events()

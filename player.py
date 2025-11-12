@@ -14,4 +14,7 @@ class JoJo:
         pass
 
 class DIO:
-    pass
+    def draw(self):
+        pass
+    def update(self):
+        pass
