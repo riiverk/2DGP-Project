@@ -1,50 +1,29 @@
 from pico2d import *
 from UI import *
 from player import *
+import game_world
 
 def reset_world():
-    global world
-
-    world = []
-
     background = Background()
-    world.append(background)
+    game_world.add_object(background, 0)
 
-    health = []
     p1_health = Health(394)
     p2_health = Health(1194)
-    health.append(p1_health)
-    health.append(p2_health)
-    world.append(health)
-
-    # gauge = []
-    # p1_gauge = Gauge(0)
-    # p2_gauge = Gauge(650)
-    # gauge.append(p1_gauge)
-    # gauge.append(p2_gauge)
-    # world.append(gauge)
+    health = [p1_health, p2_health]
+    game_world.add_objects(health, 3)
 
     jojo = JoJo()
     dio = DIO()
     player = [jojo, dio]
-    world.append(player)
+    game_world.add_objects(player, 2)
+
 
 def update_world():
-    for o in world:
-        if type(o) == list:
-            for i in o:
-                i.update()
-        else:
-            o.update()
+    game_world.update()
 
 def render_world():
     clear_canvas()
-    for o in world:
-        if type(o) == list:
-            for i in o:
-                i.draw()
-        else:
-            o.draw()
+    game_world.render()
     update_canvas()
 
 def handle_events():
