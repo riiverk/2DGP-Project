@@ -7,7 +7,9 @@ def reset_world():
     background = Background()
     game_world.add_object(background, 0)
 
-    p1_health = Health(394)
+    healthbar = HealthBar()
+    game_world.add_object(healthbar, 3)
+    p1_health = Health(406)
     p2_health = Health(1194)
     health = [p1_health, p2_health]
     game_world.add_objects(health, 3)

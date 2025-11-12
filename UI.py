@@ -5,11 +5,21 @@ class Health :
         self.image = load_image('health.png')
         self.x = x
         self.y = 1200 - 142 - 15 - 1 + 50
-        self.image_bkg = load_image('healthbar.png')
+        # self.image_bkg = load_image('healthbar.png')
 
     def draw(self):
-        self.image_bkg.draw(800, 1050, 1400, 202)
+        # self.image_bkg.draw(800, 1050, 1400, 202)
         self.image.draw(self.x, self.y, 550, 30)
+
+    def update(self):
+        pass
+
+class HealthBar:
+    def __init__(self):
+        self.image = load_image('healthbar.png')
+
+    def draw(self):
+        self.image.draw(800, 1050, 1400, 202)
 
     def update(self):
         pass
