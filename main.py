@@ -1,7 +1,8 @@
 from pico2d import *
 from UI import *
-from player import *
 import game_world
+from JoJo import JoJo
+from DIO import DIO
 
 def reset_world():
     background = Background()
@@ -29,7 +30,13 @@ def render_world():
     update_canvas()
 
 def handle_events():
-    pass
+    events = get_events()
+    for event in events:
+        if event.type == SDL_KEYDOWN:
+            if event.key == SDLK_LEFT:
+                jojo.move_left()
+            elif event.key == SDLK_RIGHT:
+                jojo.move_right()
 
 running = True
 
