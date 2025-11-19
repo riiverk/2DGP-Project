@@ -36,7 +36,7 @@ def resume():
     pass
 
 def handle_events():
-    global jojo
+    global jojo, dio
     events = get_events()
     for event in events:
         if event.type == SDL_QUIT:
@@ -45,6 +45,7 @@ def handle_events():
             game_framework.quit()
         else:
             jojo.handle_event(event)
+            dio.handle_event(event)
 
 def update():
     game_world.update()
