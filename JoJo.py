@@ -175,6 +175,7 @@ class JoJo:
         self.speed = 1
         self.left_pressed = False
         self.right_pressed = False
+        self.hp = 100
 
         self.IDLE = Idle(self)
         self.RUN = Run(self)
@@ -208,3 +209,18 @@ class JoJo:
 
     def draw(self):
         self.state_machine.draw()
+
+    def get_bb(self):
+        # 현재 상태에 맞는 프레임 이름 결정
+        if self.state_machine.cur_state == self.IDLE:
+            frame_name = f'Idle{int(self.frame) + 1}'
+        elif self.state_machine.cur_state == self.RUN:
+            frame_name = f'Walk{int(self.frame) + 1}'
+        elif self.state_machine.cur_state == self.JUMP:
+            frame_name = f'Jump{int(self.frame) + 1}'
+        else:  # KICK
+            frame_name = f'Kick{int(self.frame) + 1}'
+
+        frame_data = Sprite_data[frame_name]
+        w, h = frame_data['width'] * 3, frame_data['height'] * 3
+        return self.x - w // 2, self.y - h // 2, self.x + w // 2, self.y + h // 2

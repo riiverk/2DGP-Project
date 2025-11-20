@@ -1,5 +1,5 @@
 from pico2d import load_image
-from sdl2 import SDL_KEYDOWN, SDL_KEYUP, SDLK_a, SDLK_d, SDLK_w
+from sdl2 import SDL_KEYDOWN, SDL_KEYUP, SDLK_a, SDLK_d, SDLK_w, SDLK_s, SDLK_h
 import json
 
 from state_machine import StateMachine
@@ -36,6 +36,14 @@ def time_out(e):
 
 def jump_end_run(e):
     return e[0] == 'JUMP_END_RUN'
+
+
+def s_down(e):
+    return e[0] == 'INPUT' and e[1].type == SDL_KEYDOWN and e[1].key == SDLK_s
+
+
+def h_down(e):
+    return e[0] == 'INPUT' and e[1].type == SDL_KEYDOWN and e[1].key == SDLK_h
 
 
 class Idle:
@@ -136,6 +144,54 @@ class Jump:
         self.dio.image.clip_draw(x, src_y, w, h, self.dio.x, self.dio.y, w * 3, h * 3)
 
 
+class Down:
+    def __init__(self, dio):
+        self.dio = dio
+
+    def enter(self, e):
+        self.dio.frame = 0
+
+    def exit(self, e):
+        pass
+
+    def do(self):
+        self.dio.frame += 0.05
+        if self.dio.frame >= 7:
+            self.dio.frame = 6.9
+            self.dio.state_machine.handle_state_event(('TIME_OUT', None))
+
+    def draw(self):
+        frame_name = f'Down{int(self.dio.frame) + 1}'
+        frame_data = Sprite_data[frame_name]
+        x, y, w, h = frame_data['x'], frame_data['y'], frame_data['width'], frame_data['height']
+        src_y = self.dio.image_h - y - h
+        self.dio.image.clip_draw(x, src_y, w, h, self.dio.x, self.dio.y, w * 3, h * 3)
+
+
+class Jap:
+    def __init__(self, dio):
+        self.dio = dio
+
+    def enter(self, e):
+        self.dio.frame = 0
+
+    def exit(self, e):
+        pass
+
+    def do(self):
+        self.dio.frame += 0.05
+        if self.dio.frame >= 4:
+            self.dio.frame = 3.9
+            self.dio.state_machine.handle_state_event(('TIME_OUT', None))
+
+    def draw(self):
+        frame_name = f'Jap{int(self.dio.frame) + 1}'
+        frame_data = Sprite_data[frame_name]
+        x, y, w, h = frame_data['x'], frame_data['y'], frame_data['width'], frame_data['height']
+        src_y = self.dio.image_h - y - h
+        self.dio.image.clip_draw(x, src_y, w, h, self.dio.x, self.dio.y, w * 3, h * 3)
+
+
 class DIO:
     def __init__(self):
         self.x, self.y = 300, 400
@@ -147,16 +203,21 @@ class DIO:
         self.speed = 1
         self.a_pressed = False
         self.d_pressed = False
+        self.hp = 100
 
         self.IDLE = Idle(self)
         self.RUN = Run(self)
         self.JUMP = Jump(self)
+        self.DOWN = Down(self)
+        self.JAP = Jap(self)
         self.state_machine = StateMachine(
             self.IDLE,
             {
-                self.IDLE: {d_down: self.RUN, a_down: self.RUN, d_up: self.RUN, a_up: self.RUN, w_down: self.JUMP},
-                self.RUN: {d_up: self.IDLE, a_up: self.IDLE, d_down: self.IDLE, a_down: self.IDLE, w_down: self.JUMP},
-                self.JUMP: {time_out: self.IDLE, jump_end_run: self.RUN}
+                self.IDLE: {d_down: self.RUN, a_down: self.RUN, d_up: self.RUN, a_up: self.RUN, w_down: self.JUMP, s_down: self.DOWN, h_down: self.JAP},
+                self.RUN: {d_up: self.IDLE, a_up: self.IDLE, d_down: self.IDLE, a_down: self.IDLE, w_down: self.JUMP, s_down: self.DOWN, h_down: self.JAP},
+                self.JUMP: {time_out: self.IDLE, jump_end_run: self.RUN},
+                self.DOWN: {time_out: self.IDLE},
+                self.JAP: {time_out: self.IDLE}
             }
         )
 
@@ -178,3 +239,20 @@ class DIO:
 
     def draw(self):
         self.state_machine.draw()
+
+    def get_bb(self):
+        # 현재 상태에 맞는 프레임 이름 결정
+        if self.state_machine.cur_state == self.IDLE:
+            frame_name = f'Idle{int(self.frame) + 1}'
+        elif self.state_machine.cur_state == self.RUN:
+            frame_name = f'Walk{int(self.frame) + 1}'
+        elif self.state_machine.cur_state == self.JUMP:
+            frame_name = f'Jump{int(self.frame) + 1}'
+        elif self.state_machine.cur_state == self.DOWN:
+            frame_name = f'Down{int(self.frame) + 1}'
+        else:  # JAP
+            frame_name = f'Jap{int(self.frame) + 1}'
+
+        frame_data = Sprite_data[frame_name]
+        w, h = frame_data['width'] * 3, frame_data['height'] * 3
+        return self.x - w // 2, self.y - h // 2, self.x + w // 2, self.y + h // 2
