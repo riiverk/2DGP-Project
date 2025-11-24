@@ -3,6 +3,9 @@ from sdl2 import SDL_KEYDOWN, SDL_KEYUP, SDLK_RIGHT, SDLK_LEFT, SDLK_UP, SDLK_RE
 import json
 
 from state_machine import StateMachine
+import game_world
+
+dio_hit = False
 
 # 모듈 로드 시 JSON 한 번만 읽기
 with open('jojo.json', 'r') as f:
@@ -224,3 +227,16 @@ class JoJo:
         frame_data = Sprite_data[frame_name]
         w, h = frame_data['width'] * 3, frame_data['height'] * 3
         return self.x - w // 2, self.y - h // 2, self.x + w // 2, self.y + h // 2
+
+    def handle_collision(self, group, other):
+       global dio_hit
+        if group == 'DIO:JoJo':
+            if other.state_machine.cur_state == other.JAP:
+                if not dio_hit:
+                    self.hp -= 10
+                    dio_hit = True
+                    print(f'JoJo HP: {self.hp}')
+            else:
+                dio_hit = False
+
+

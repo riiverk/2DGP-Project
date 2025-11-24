@@ -7,16 +7,6 @@ from DIO import DIO
 
 jojo = None
 dio = None
-dio_hit = False  # DIO의 Jap이 이미 맞췄는지 체크
-
-def collide(a, b):
-    left_a, bottom_a, right_a, top_a = a.get_bb()
-    left_b, bottom_b, right_b, top_b = b.get_bb()
-    if left_a > right_b: return False
-    if right_a < left_b: return False
-    if top_a < bottom_b: return False
-    if bottom_a > top_b: return False
-    return True
 
 def init():
     global jojo, dio
@@ -28,6 +18,8 @@ def init():
     dio = DIO()
     player = [jojo, dio]
     game_world.add_objects(player, 2)
+    game_world.add_collision_pair('DIO:JoJo', DIO, None)
+    game_world.add_collision_pair('DIO:JoJo', None, JoJo)
 
     healthbar = HealthBar()
     game_world.add_object(healthbar, 3)
@@ -58,17 +50,8 @@ def handle_events():
             dio.handle_event(event)
 
 def update():
-    global dio_hit
     game_world.update()
-
-    # DIO의 Jap이 JoJo에게 맞으면 체력 감소
-    if dio.state_machine.cur_state == dio.JAP:
-        if not dio_hit and collide(dio, jojo):
-            jojo.hp -= 10
-            dio_hit = True
-            print(f'JoJo HP: {jojo.hp}')
-    else:
-        dio_hit = False
+    game_world.handle_collision()
 
 def draw():
     clear_canvas()

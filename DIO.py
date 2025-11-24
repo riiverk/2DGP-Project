@@ -256,3 +256,6 @@ class DIO:
         frame_data = Sprite_data[frame_name]
         w, h = frame_data['width'] * 3, frame_data['height'] * 3
         return self.x - w // 2, self.y - h // 2, self.x + w // 2, self.y + h // 2
+
+    def handle_collision(self, group, other):
+        pass
