@@ -1,4 +1,4 @@
-from pico2d import load_image, get_time
+from pico2d import load_image, get_time, draw_rectangle
 from sdl2 import SDL_KEYDOWN, SDL_KEYUP, SDLK_RIGHT, SDLK_LEFT, SDLK_UP, SDLK_RETURN
 import json
 
@@ -212,6 +212,7 @@ class JoJo:
 
     def draw(self):
         self.state_machine.draw()
+        draw_rectangle(*self.get_bb())
 
     def get_bb(self):
         # 현재 상태에 맞는 프레임 이름 결정
@@ -230,7 +231,7 @@ class JoJo:
 
     def handle_collision(self, group, other):
        global dio_hit
-        if group == 'DIO:JoJo':
+       if group == 'DIO:JoJo':
             if other.state_machine.cur_state == other.JAP:
                 if not dio_hit:
                     self.hp -= 10
@@ -238,5 +239,6 @@ class JoJo:
                     print(f'JoJo HP: {self.hp}')
             else:
                 dio_hit = False
+
 
 

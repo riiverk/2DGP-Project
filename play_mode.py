@@ -18,8 +18,8 @@ def init():
     dio = DIO()
     player = [jojo, dio]
     game_world.add_objects(player, 2)
-    game_world.add_collision_pair('DIO:JoJo', DIO, None)
-    game_world.add_collision_pair('DIO:JoJo', None, JoJo)
+    game_world.add_collision_pair('DIO:JoJo', dio, None)
+    game_world.add_collision_pair('DIO:JoJo', None, jojo)
 
     healthbar = HealthBar()
     game_world.add_object(healthbar, 3)
