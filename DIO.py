@@ -42,6 +42,10 @@ def s_down(e):
     return e[0] == 'INPUT' and e[1].type == SDL_KEYDOWN and e[1].key == SDLK_s
 
 
+def s_up(e):
+    return e[0] == 'INPUT' and e[1].type == SDL_KEYUP and e[1].key == SDLK_s
+
+
 def h_down(e):
     return e[0] == 'INPUT' and e[1].type == SDL_KEYDOWN and e[1].key == SDLK_h
 
@@ -155,10 +159,15 @@ class Down:
         pass
 
     def do(self):
-        self.dio.frame += 0.05
-        if self.dio.frame >= 7:
-            self.dio.frame = 6.9
-            self.dio.state_machine.handle_state_event(('TIME_OUT', None))
+        # s키가 눌려있으면 프레임 4에서 멈춤
+        if self.dio.s_pressed and self.dio.frame >= 4:
+            self.dio.frame = 3.99
+        # s키가 떼어지면 프레임 5, 6, 7 진행
+        else:
+            self.dio.frame += 0.05
+            if self.dio.frame >= 7:
+                self.dio.frame = 6.9
+                self.dio.state_machine.handle_state_event(('TIME_OUT', None))
 
     def draw(self):
         frame_name = f'Down{int(self.dio.frame) + 1}'
@@ -203,6 +212,7 @@ class DIO:
         self.speed = 1
         self.a_pressed = False
         self.d_pressed = False
+        self.s_pressed = False
         self.hp = 100
 
         self.IDLE = Idle(self)
@@ -230,11 +240,15 @@ class DIO:
                 self.a_pressed = True
             elif event.key == SDLK_d:
                 self.d_pressed = True
+            elif event.key == SDLK_s:
+                self.s_pressed = True
         elif event.type == SDL_KEYUP:
             if event.key == SDLK_a:
                 self.a_pressed = False
             elif event.key == SDLK_d:
                 self.d_pressed = False
+            elif event.key == SDLK_s:
+                self.s_pressed = False
         self.state_machine.handle_state_event(('INPUT', event))
 
     def draw(self):
