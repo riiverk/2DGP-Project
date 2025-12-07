@@ -161,7 +161,7 @@ class Down:
     def do(self):
         # s키가 눌려있으면 프레임 4에서 멈춤
         if self.dio.s_pressed and self.dio.frame >= 4:
-            self.dio.frame = 3.99
+            self.dio.frame = 4
         # s키가 떼어지면 프레임 5, 6, 7 진행
         else:
             self.dio.frame += 0.05
