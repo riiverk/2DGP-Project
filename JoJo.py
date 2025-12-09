@@ -188,7 +188,7 @@ class Kick:
 
 class JoJo:
     def __init__(self):
-        self.x, self.y = 1300, 400
+        self.x, self.y = 1300, 200
         self.frame = 0
         self.face_dir = -1
         self.dir = 0

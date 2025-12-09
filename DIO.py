@@ -218,7 +218,7 @@ class Jap:
 
 class DIO:
     def __init__(self):
-        self.x, self.y = 300, 400
+        self.x, self.y = 300, 200
         self.frame = 0
         self.face_dir = 1
         self.dir = 0
