@@ -2,6 +2,7 @@ from pico2d import *
 from UI import *
 import game_world
 import game_framework
+import result_mode
 from JoJo import JoJo
 from DIO import DIO
 
