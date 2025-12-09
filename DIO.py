@@ -159,7 +159,7 @@ class Jump:
         self.dio.image.clip_draw(x, src_y, w, h, self.dio.x, self.dio.y, w * 3, h * 3)
 
 
-class Down:
+class Crouch:
     def __init__(self, dio):
         self.dio = dio
         self.TIME_PER_ACTION = 0.35
@@ -233,15 +233,15 @@ class DIO:
         self.IDLE = Idle(self)
         self.RUN = Run(self)
         self.JUMP = Jump(self)
-        self.DOWN = Down(self)
+        self.CROUCH = Crouch(self)
         self.JAP = Jap(self)
         self.state_machine = StateMachine(
             self.IDLE,
             {
-                self.IDLE: {d_down: self.RUN, a_down: self.RUN, d_up: self.RUN, a_up: self.RUN, w_down: self.JUMP, s_down: self.DOWN, h_down: self.JAP},
-                self.RUN: {d_up: self.IDLE, a_up: self.IDLE, d_down: self.IDLE, a_down: self.IDLE, w_down: self.JUMP, s_down: self.DOWN, h_down: self.JAP},
+                self.IDLE: {d_down: self.RUN, a_down: self.RUN, d_up: self.RUN, a_up: self.RUN, w_down: self.JUMP, s_down: self.CROUCH, h_down: self.JAP},
+                self.RUN: {d_up: self.IDLE, a_up: self.IDLE, d_down: self.IDLE, a_down: self.IDLE, w_down: self.JUMP, s_down: self.CROUCH, h_down: self.JAP},
                 self.JUMP: {time_out: self.IDLE, jump_end_run: self.RUN},
-                self.DOWN: {time_out: self.IDLE},
+                self.CROUCH: {time_out: self.IDLE},
                 self.JAP: {time_out: self.IDLE}
             }
         )
@@ -278,7 +278,7 @@ class DIO:
             frame_name = f'Walk{int(self.frame) + 1}'
         elif self.state_machine.cur_state == self.JUMP:
             frame_name = f'Jump{int(self.frame) + 1}'
-        elif self.state_machine.cur_state == self.DOWN:
+        elif self.state_machine.cur_state == self.CROUCH:
             frame_name = f'Down{int(self.frame) + 1}'
         else:  # JAP
             frame_name = f'Jap{int(self.frame) + 1}'
