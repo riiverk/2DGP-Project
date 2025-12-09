@@ -328,6 +328,7 @@ class JoJo:
         self.right_pressed = False
         self.down_pressed = False
         self.hp = 100
+        self.point = 0
 
         self.IDLE = Idle(self)
         self.RUN = Run(self)
