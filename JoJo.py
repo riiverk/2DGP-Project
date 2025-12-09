@@ -1,5 +1,5 @@
 from pico2d import load_image, get_time, draw_rectangle
-from sdl2 import SDL_KEYDOWN, SDL_KEYUP, SDLK_RIGHT, SDLK_LEFT, SDLK_UP, SDLK_RETURN
+from sdl2 import SDL_KEYDOWN, SDL_KEYUP, SDLK_RIGHT, SDLK_LEFT, SDLK_UP, SDLK_DOWN, SDLK_RETURN
 import json
 
 from state_machine import StateMachine
@@ -15,7 +15,27 @@ Sprite_data = {sprite['name']: sprite for sprite in _sprite_list}
 
 JoJo_Sprite = {
     'idle': [
-        (4, 123, 64, 117), (80, 123, 64, 117), ()
+        (4, 7627, 64, 117), (80, 7627, 64, 117), (155, 7627, 64, 117), (232, 7627, 67, 117),
+        (310, 7627, 69, 117), (390, 7627, 67, 117), (467, 7627, 64, 117), (541, 7627, 64, 117),
+        (615, 7627, 64, 117), (688, 7627, 64, 117), (759, 7627, 64, 117), (834, 7627, 67, 117),
+        (912, 7627, 69, 117), (989, 7627, 67, 117), (1065, 7627, 64, 117), (1141, 7627, 64, 117),
+        (1216, 7627, 64, 117), (1290, 7627, 64, 117), (1362, 7627, 64, 117), (1436, 7627, 67, 117),
+        (1516, 7627, 69, 117), (1595, 7627, 67, 117), (1671, 7627, 64, 117), (1749, 7627, 64, 117)
+    ], 'forward': [
+        (4, 6779, 67, 115), (94, 6779, 56, 113), (174, 6779, 47, 113), (247, 6779, 48, 113),
+        (316, 6779, 53, 113), (387, 6779, 70, 113), (473, 6779, 77, 114), (564, 6779, 72, 115),
+        (658, 6779, 69, 115), (746, 6779, 62, 115), (826, 6779, 47, 115), (897, 6779, 54, 113), # 이 줄 확인
+        (959, 6779, 71, 113), (1037, 6779, 75, 113), (1124, 6779, 76, 113), (1209, 6779, 72, 113)
+    ], 'backward': [
+        (1395, 6779, 94, 113), (1497, 6779, 78, 113), (1583, 6779, 59, 113), (1656, 6779, 52, 113),
+        (1723, 6779, 46, 113), (1782, 6779, 59, 113), (1854, 6779, 64, 113), (1931, 6779, 72, 113),
+        (2016, 6779, 77, 113), (2105, 6779, 70, 113), (2186, 6779, 53, 113), (2253, 6779, 48, 113),
+        (2314, 6779, 47, 113), (2374, 6779, 56, 113), (2443, 6779, 67, 113), (2523, 6779, 72, 113),
+    ], 'crouch': [  # 6번째 인덱스에서 기다림
+        (914, 6905, 97, 102), (1026, 6905, 91, 75), (1128, 6905, 104, 72), (1245, 6905, 89, 72),
+        (1348, 6905, 95, 72), (1455, 6905, 89, 72), (2186, 6905, 90, 76), (2290, 6905, 90, 74),
+        (2392, 6905, 71, 102), (2471, 6905, 76, 118), (2558, 6905, 74, 117), (2641, 6905, 76, 117),
+        (2725, 6905, 71, 117), (2804, 6905, 69, 117), (2883, 6905, 65, 117), (2956, 6905, 64, 117)
     ]
 }
 
@@ -51,12 +71,20 @@ def enter_down(e):
     return e[0] == 'INPUT' and e[1].type == SDL_KEYDOWN and e[1].key == SDLK_RETURN
 
 
+def down_down(e):
+    return e[0] == 'INPUT' and e[1].type == SDL_KEYDOWN and e[1].key == SDLK_DOWN
+
+
+def down_up(e):
+    return e[0] == 'INPUT' and e[1].type == SDL_KEYUP and e[1].key == SDLK_DOWN
+
+
 class Idle:
     def __init__(self, jojo):
         self.jojo = jojo
-        self.TIME_PER_ACTION = 1.6
+        self.TIME_PER_ACTION = 2.0
         self.ACTION_PER_TIME = 1.0 / self.TIME_PER_ACTION
-        self.FRAMES_PER_ACTION = 16
+        self.FRAMES_PER_ACTION = 24
 
     def enter(self, e):
         self.jojo.dir = 0
@@ -66,14 +94,12 @@ class Idle:
         pass
 
     def do(self):
-        self.jojo.frame = (self.jojo.frame + self.FRAMES_PER_ACTION * self.ACTION_PER_TIME * game_framework.frame_time) % 16
+        self.jojo.frame = (self.jojo.frame + self.FRAMES_PER_ACTION * self.ACTION_PER_TIME * game_framework.frame_time) % 24
 
     def draw(self):
-        frame_name = f'Idle{int(self.jojo.frame) + 1}'
-        frame_data = Sprite_data[frame_name]
-        x, y, w, h = frame_data['x'], frame_data['y'], frame_data['width'], frame_data['height']
-        pic_y = self.jojo.image_h - y - h
-        self.jojo.image.clip_draw(x, pic_y, w, h, self.jojo.x, self.jojo.y, w * 3, h * 3)
+        frame_index = int(self.jojo.frame)
+        x, y, w, h = JoJo_Sprite['idle'][frame_index]
+        self.jojo.image.clip_composite_draw(x, y, w, h, 0, 'h', self.jojo.x, self.jojo.y, w * 3, h * 3)
 
 
 class Run:
@@ -81,7 +107,7 @@ class Run:
         self.jojo = jojo
         self.TIME_PER_ACTION = 0.8
         self.ACTION_PER_TIME = 1.0 / self.TIME_PER_ACTION
-        self.FRAMES_PER_ACTION = 10
+        self.FRAMES_PER_ACTION = 16
         self.RUN_SPEED_PPS = 200
 
     def enter(self, e):
@@ -104,15 +130,16 @@ class Run:
         pass
 
     def do(self):
-        self.jojo.frame = (self.jojo.frame + self.FRAMES_PER_ACTION * self.ACTION_PER_TIME * game_framework.frame_time) % 10
+        self.jojo.frame = (self.jojo.frame + self.FRAMES_PER_ACTION * self.ACTION_PER_TIME * game_framework.frame_time) % 16
         self.jojo.x += self.jojo.dir * self.RUN_SPEED_PPS * game_framework.frame_time
 
     def draw(self):
-        frame_name = f'Walk{int(self.jojo.frame) + 1}'
-        frame_data = Sprite_data[frame_name]
-        x, y, w, h = frame_data['x'], frame_data['y'], frame_data['width'], frame_data['height']
-        src_y = self.jojo.image_h - y - h
-        self.jojo.image.clip_draw(x, src_y, w, h, self.jojo.x, self.jojo.y, w * 3, h * 3)
+        frame_index = int(self.jojo.frame)
+        if self.jojo.dir == -1:
+            x, y, w, h = JoJo_Sprite['forward'][frame_index]
+        else:
+            x, y, w, h = JoJo_Sprite['backward'][frame_index]
+        self.jojo.image.clip_composite_draw(x, y, w, h, 0, 'h', self.jojo.x, self.jojo.y, w * 3, h * 3)
 
 
 class Jump:
@@ -186,30 +213,61 @@ class Kick:
         self.jojo.image.clip_draw(x, src_y, w, h, self.jojo.x, self.jojo.y, w * 3, h * 3)
 
 
+class Crouch:
+    def __init__(self, jojo):
+        self.jojo = jojo
+        self.TIME_PER_ACTION = 1.0
+        self.ACTION_PER_TIME = 1.0 / self.TIME_PER_ACTION
+        self.FRAMES_PER_ACTION = 16
+
+    def enter(self, e):
+        self.jojo.frame = 0
+
+    def exit(self, e):
+        pass
+
+    def do(self):
+        self.jojo.frame += self.FRAMES_PER_ACTION * self.ACTION_PER_TIME * game_framework.frame_time
+
+        if self.jojo.down_pressed and self.jojo.frame >= 6:
+            self.jojo.frame = 6
+        elif not self.jojo.down_pressed and self.jojo.frame >= 16:
+            self.jojo.frame = 15.9
+            self.jojo.state_machine.handle_state_event(('TIME_OUT', None))
+
+    def draw(self):
+        frame_index = int(self.jojo.frame)
+        x, y, w, h = JoJo_Sprite['crouch'][frame_index]
+        self.jojo.image.clip_composite_draw(x, y, w, h, 0, 'h', self.jojo.x, self.jojo.y, w * 3, h * 3)
+
+
 class JoJo:
     def __init__(self):
         self.x, self.y = 1300, 200
         self.frame = 0
         self.face_dir = -1
         self.dir = 0
-        self.image = load_image('JoJo.png')
-        self.image_h = 4800
+        self.image = load_image('JoJo_fix.png')
+        self.image_h = 7750
         self.speed = 1
         self.left_pressed = False
         self.right_pressed = False
+        self.down_pressed = False
         self.hp = 100
 
         self.IDLE = Idle(self)
         self.RUN = Run(self)
         self.JUMP = Jump(self)
         self.KICK = Kick(self)
+        self.CROUCH = Crouch(self)
         self.state_machine = StateMachine(
             self.IDLE,
             {
-                self.IDLE: {right_down: self.RUN, left_down: self.RUN, right_up: self.RUN, left_up: self.RUN, up_down: self.JUMP, enter_down: self.KICK},
-                self.RUN: {right_up: self.IDLE, left_up: self.IDLE, right_down: self.IDLE, left_down: self.IDLE, up_down: self.JUMP, enter_down: self.KICK},
+                self.IDLE: {right_down: self.RUN, left_down: self.RUN, right_up: self.RUN, left_up: self.RUN, up_down: self.JUMP, enter_down: self.KICK, down_down: self.CROUCH},
+                self.RUN: {right_up: self.IDLE, left_up: self.IDLE, right_down: self.IDLE, left_down: self.IDLE, up_down: self.JUMP, enter_down: self.KICK, down_down: self.CROUCH},
                 self.JUMP: {time_out: self.IDLE, jump_end_run: self.RUN},
-                self.KICK: {time_out: self.IDLE}
+                self.KICK: {time_out: self.IDLE},
+                self.CROUCH: {time_out: self.IDLE}
             }
         )
 
@@ -222,11 +280,15 @@ class JoJo:
                 self.left_pressed = True
             elif event.key == SDLK_RIGHT:
                 self.right_pressed = True
+            elif event.key == SDLK_DOWN:
+                self.down_pressed = True
         elif event.type == SDL_KEYUP:
             if event.key == SDLK_LEFT:
                 self.left_pressed = False
             elif event.key == SDLK_RIGHT:
                 self.right_pressed = False
+            elif event.key == SDLK_DOWN:
+                self.down_pressed = False
         self.state_machine.handle_state_event(('INPUT', event))
 
     def draw(self):
@@ -234,18 +296,30 @@ class JoJo:
         draw_rectangle(*self.get_bb())
 
     def get_bb(self):
-        # 현재 상태에 맞는 프레임 이름 결정
         if self.state_machine.cur_state == self.IDLE:
-            frame_name = f'Idle{int(self.frame) + 1}'
+            frame_index = int(self.frame)
+            x, y, w, h = JoJo_Sprite['idle'][frame_index]
+            w, h = w * 3, h * 3
         elif self.state_machine.cur_state == self.RUN:
-            frame_name = f'Walk{int(self.frame) + 1}'
+            frame_index = int(self.frame)
+            if self.dir == -1:
+                x, y, w, h = JoJo_Sprite['forward'][frame_index]
+            else:
+                x, y, w, h = JoJo_Sprite['backward'][frame_index]
+            w, h = w * 3, h * 3
+        elif self.state_machine.cur_state == self.CROUCH:
+            frame_index = int(self.frame)
+            x, y, w, h = JoJo_Sprite['crouch'][frame_index]
+            w, h = w * 3, h * 3
         elif self.state_machine.cur_state == self.JUMP:
             frame_name = f'Jump{int(self.frame) + 1}'
+            frame_data = Sprite_data[frame_name]
+            w, h = frame_data['width'] * 3, frame_data['height'] * 3
         else:  # KICK
             frame_name = f'Kick{int(self.frame) + 1}'
+            frame_data = Sprite_data[frame_name]
+            w, h = frame_data['width'] * 3, frame_data['height'] * 3
 
-        frame_data = Sprite_data[frame_name]
-        w, h = frame_data['width'] * 3, frame_data['height'] * 3
         return self.x - w // 2, self.y - h // 2, self.x + w // 2, self.y + h // 2
 
     def handle_collision(self, group, other):
