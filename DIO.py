@@ -324,6 +324,7 @@ class DIO:
         self.s_pressed = False
         self.hp = 100
         self.point = 0
+        self.theWorld = False
 
         self.IDLE = Idle(self)
         self.RUN = Run(self)
