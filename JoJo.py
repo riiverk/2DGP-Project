@@ -4,6 +4,7 @@ import json
 
 from state_machine import StateMachine
 import game_world
+import game_framework
 
 dio_hit = False
 
@@ -48,6 +49,9 @@ def enter_down(e):
 class Idle:
     def __init__(self, jojo):
         self.jojo = jojo
+        self.TIME_PER_ACTION = 1.6
+        self.ACTION_PER_TIME = 1.0 / self.TIME_PER_ACTION
+        self.FRAMES_PER_ACTION = 16
 
     def enter(self, e):
         self.jojo.dir = 0
@@ -57,7 +61,7 @@ class Idle:
         pass
 
     def do(self):
-        self.jojo.frame = (self.jojo.frame + 0.01) % 16
+        self.jojo.frame = (self.jojo.frame + self.FRAMES_PER_ACTION * self.ACTION_PER_TIME * game_framework.frame_time) % 16
 
     def draw(self):
         frame_name = f'Idle{int(self.jojo.frame) + 1}'
@@ -70,6 +74,10 @@ class Idle:
 class Run:
     def __init__(self, jojo):
         self.jojo = jojo
+        self.TIME_PER_ACTION = 0.8
+        self.ACTION_PER_TIME = 1.0 / self.TIME_PER_ACTION
+        self.FRAMES_PER_ACTION = 10
+        self.RUN_SPEED_PPS = 200
 
     def enter(self, e):
         if right_down(e) or left_up(e):
@@ -91,8 +99,8 @@ class Run:
         pass
 
     def do(self):
-        self.jojo.frame = (self.jojo.frame + 0.03) % 10
-        self.jojo.x += self.jojo.dir * self.jojo.speed
+        self.jojo.frame = (self.jojo.frame + self.FRAMES_PER_ACTION * self.ACTION_PER_TIME * game_framework.frame_time) % 10
+        self.jojo.x += self.jojo.dir * self.RUN_SPEED_PPS * game_framework.frame_time
 
     def draw(self):
         frame_name = f'Walk{int(self.jojo.frame) + 1}'
@@ -106,6 +114,10 @@ class Jump:
     def __init__(self, jojo):
         self.jojo = jojo
         self.start_y = 0
+        self.TIME_PER_ACTION = 0.85
+        self.ACTION_PER_TIME = 1.0 / self.TIME_PER_ACTION
+        self.FRAMES_PER_ACTION = 17
+        self.JUMP_SPEED_PPS = 400
 
     def enter(self, e):
         self.jojo.frame = 0
@@ -115,18 +127,17 @@ class Jump:
         self.jojo.y = self.start_y
 
     def do(self):
-        self.jojo.frame += 0.05
-        # Jump1~Jump8: 상승, Jump8~Jump14: 하강, Jump14~Jump17: 제자리
+        self.jojo.frame += self.FRAMES_PER_ACTION * self.ACTION_PER_TIME * game_framework.frame_time
+
         if self.jojo.frame < 7:
             self.jojo.y += 2
         elif self.jojo.frame < 13:
-            self.jojo.y -= 7 / 6 * 2  # 상승/하강 비율 맞춤
+            self.jojo.y -= 7 / 6 * 2
 
-        # 좌우 이동
         if self.jojo.left_pressed:
-            self.jojo.x -= self.jojo.speed * 2
+            self.jojo.x -= self.JUMP_SPEED_PPS * game_framework.frame_time
         if self.jojo.right_pressed:
-            self.jojo.x += self.jojo.speed * 2
+            self.jojo.x += self.JUMP_SPEED_PPS * game_framework.frame_time
 
         if self.jojo.frame >= 17:
             self.jojo.frame = 16.9
@@ -146,6 +157,9 @@ class Jump:
 class Kick:
     def __init__(self, jojo):
         self.jojo = jojo
+        self.TIME_PER_ACTION = 0.45
+        self.ACTION_PER_TIME = 1.0 / self.TIME_PER_ACTION
+        self.FRAMES_PER_ACTION = 9
 
     def enter(self, e):
         self.jojo.frame = 0
@@ -154,7 +168,7 @@ class Kick:
         pass
 
     def do(self):
-        self.jojo.frame += 0.05
+        self.jojo.frame += self.FRAMES_PER_ACTION * self.ACTION_PER_TIME * game_framework.frame_time
         if self.jojo.frame >= 9:
             self.jojo.frame = 8.9
             self.jojo.state_machine.handle_state_event(('TIME_OUT', None))

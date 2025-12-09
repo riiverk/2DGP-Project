@@ -3,6 +3,7 @@ from sdl2 import SDL_KEYDOWN, SDL_KEYUP, SDLK_a, SDLK_d, SDLK_w, SDLK_s, SDLK_h
 import json
 
 from state_machine import StateMachine
+import game_framework
 
 # 모듈 로드 시 JSON 한 번만 읽기
 with open('dio.json', 'r') as f:
@@ -53,6 +54,9 @@ def h_down(e):
 class Idle:
     def __init__(self, dio):
         self.dio = dio
+        self.TIME_PER_ACTION = 0.5
+        self.ACTION_PER_TIME = 1.0 / self.TIME_PER_ACTION
+        self.FRAMES_PER_ACTION = 5
 
     def enter(self, e):
         self.dio.dir = 0
@@ -62,7 +66,7 @@ class Idle:
         pass
 
     def do(self):
-        self.dio.frame = (self.dio.frame + 0.01) % 5
+        self.dio.frame = (self.dio.frame + self.FRAMES_PER_ACTION * self.ACTION_PER_TIME * game_framework.frame_time) % 5
 
     def draw(self):
         frame_name = f'Idle{int(self.dio.frame) + 1}'
@@ -75,6 +79,10 @@ class Idle:
 class Run:
     def __init__(self, dio):
         self.dio = dio
+        self.TIME_PER_ACTION = 0.8
+        self.ACTION_PER_TIME = 1.0 / self.TIME_PER_ACTION
+        self.FRAMES_PER_ACTION = 16
+        self.RUN_SPEED_PPS = 200
 
     def enter(self, e):
         if d_down(e) or a_up(e):
@@ -96,8 +104,8 @@ class Run:
         pass
 
     def do(self):
-        self.dio.frame = (self.dio.frame + 0.03) % 16
-        self.dio.x += self.dio.dir * self.dio.speed
+        self.dio.frame = (self.dio.frame + self.FRAMES_PER_ACTION * self.ACTION_PER_TIME * game_framework.frame_time) % 16
+        self.dio.x += self.dio.dir * self.RUN_SPEED_PPS * game_framework.frame_time
 
     def draw(self):
         frame_name = f'Walk{int(self.dio.frame) + 1}'
@@ -111,6 +119,10 @@ class Jump:
     def __init__(self, dio):
         self.dio = dio
         self.start_y = 0
+        self.TIME_PER_ACTION = 0.5
+        self.ACTION_PER_TIME = 1.0 / self.TIME_PER_ACTION
+        self.FRAMES_PER_ACTION = 10
+        self.JUMP_SPEED_PPS = 400
 
     def enter(self, e):
         self.dio.frame = 0
@@ -120,18 +132,17 @@ class Jump:
         self.dio.y = self.start_y
 
     def do(self):
-        self.dio.frame += 0.05
-        # 상승, 하강, 착지 (JoJo와 동일한 높이)
+        self.dio.frame += self.FRAMES_PER_ACTION * self.ACTION_PER_TIME * game_framework.frame_time
+
         if self.dio.frame < 4:
             self.dio.y += 3.5
         elif self.dio.frame < 8:
             self.dio.y -= 3.5
 
-        # 좌우 이동
         if self.dio.a_pressed:
-            self.dio.x -= self.dio.speed * 2
+            self.dio.x -= self.JUMP_SPEED_PPS * game_framework.frame_time
         if self.dio.d_pressed:
-            self.dio.x += self.dio.speed * 2
+            self.dio.x += self.JUMP_SPEED_PPS * game_framework.frame_time
 
         if self.dio.frame >= 10:
             self.dio.frame = 9.9
@@ -151,6 +162,9 @@ class Jump:
 class Down:
     def __init__(self, dio):
         self.dio = dio
+        self.TIME_PER_ACTION = 0.35
+        self.ACTION_PER_TIME = 1.0 / self.TIME_PER_ACTION
+        self.FRAMES_PER_ACTION = 7
 
     def enter(self, e):
         self.dio.frame = 0
@@ -159,12 +173,10 @@ class Down:
         pass
 
     def do(self):
-        # s키가 눌려있으면 프레임 4에서 멈춤
         if self.dio.s_pressed and self.dio.frame >= 4:
             self.dio.frame = 4
-        # s키가 떼어지면 프레임 5, 6, 7 진행
         else:
-            self.dio.frame += 0.05
+            self.dio.frame += self.FRAMES_PER_ACTION * self.ACTION_PER_TIME * game_framework.frame_time
             if self.dio.frame >= 7:
                 self.dio.frame = 6.9
                 self.dio.state_machine.handle_state_event(('TIME_OUT', None))
@@ -180,6 +192,9 @@ class Down:
 class Jap:
     def __init__(self, dio):
         self.dio = dio
+        self.TIME_PER_ACTION = 0.2
+        self.ACTION_PER_TIME = 1.0 / self.TIME_PER_ACTION
+        self.FRAMES_PER_ACTION = 4
 
     def enter(self, e):
         self.dio.frame = 0
@@ -188,7 +203,7 @@ class Jap:
         pass
 
     def do(self):
-        self.dio.frame += 0.05
+        self.dio.frame += self.FRAMES_PER_ACTION * self.ACTION_PER_TIME * game_framework.frame_time
         if self.dio.frame >= 4:
             self.dio.frame = 3.9
             self.dio.state_machine.handle_state_event(('TIME_OUT', None))

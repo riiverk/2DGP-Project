@@ -13,6 +13,8 @@ def init():
 
     background = Background()
     game_world.add_object(background, 0)
+    jojo_icon = JoJoIcon()
+    game_world.add_object(jojo_icon, 3)
 
     jojo = JoJo()
     dio = DIO()
