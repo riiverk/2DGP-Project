@@ -13,6 +13,11 @@ with open('jojo.json', 'r') as f:
     _sprite_list = json.load(f)
 Sprite_data = {sprite['name']: sprite for sprite in _sprite_list}
 
+JoJo_Sprite = {
+    'idle': [
+        (4, 123, 64, 117), (80, 123, 64, 117), ()
+    ]
+}
 
 def right_down(e):
     return e[0] == 'INPUT' and e[1].type == SDL_KEYDOWN and e[1].key == SDLK_RIGHT
