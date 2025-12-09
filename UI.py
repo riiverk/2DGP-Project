@@ -57,3 +57,13 @@ class Gauge:
 
     def update(self):
         pass
+
+class JoJoIcon:
+    def __init__(self):
+        self.image = load_image('JoJo_fix.png')
+
+    def draw(self):
+        self.image.clip_composite_draw(4734, 7750 - 7074, 100, 112, 0, 'h', 1430, 1030, 120, 134)
+
+    def update(self):
+        pass
