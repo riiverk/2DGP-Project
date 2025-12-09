@@ -76,6 +76,9 @@ def update():
             signal_shown = True
             fight_signal.start()
 
+    if jojo.hp <= 0 or dio.hp <=0:
+        game_framework.change_mode(result_mode)
+
 
 def draw():
     clear_canvas()
