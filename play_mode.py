@@ -13,8 +13,6 @@ def init():
 
     background = Background()
     game_world.add_object(background, 0)
-    jojo_icon = JoJoIcon()
-    game_world.add_object(jojo_icon, 3)
 
     jojo = JoJo()
     dio = DIO()
@@ -29,6 +27,8 @@ def init():
     p2_health = Health(1194, jojo, is_right=True)  # 오른쪽: JoJo
     health = [p1_health, p2_health]
     game_world.add_objects(health, 3)
+    portraits = Portraits()
+    game_world.add_object(portraits, 0)
 
 def finish():
     game_world.clear()

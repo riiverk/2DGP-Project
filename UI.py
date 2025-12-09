@@ -58,12 +58,13 @@ class Gauge:
     def update(self):
         pass
 
-class JoJoIcon:
+class Portraits:
     def __init__(self):
-        self.image = load_image('JoJo_fix.png')
+        self.JoJoIcon = load_image('JoJo_fix.png')
+        self.DIOIcon = load_image('DIO_fix.png')
 
     def draw(self):
-        self.image.clip_composite_draw(4734, 7750 - 7074, 100, 112, 0, 'h', 1430, 1030, 120, 134)
-
+        self.JoJoIcon.clip_composite_draw(4734, 7750 - 7074, 100, 112, 0, 'h', 1430, 1030, 120, 134)
+        self. DIOIcon.clip_draw(2859 + 20, 10400 - 10377 + 70, 200, 154, 200, 1028, 180, 139)
     def update(self):
         pass
