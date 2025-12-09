@@ -238,9 +238,12 @@ class LightAttack:
         self.TIME_PER_ACTION = 0.25
         self.ACTION_PER_TIME = 1.0 / self.TIME_PER_ACTION
         self.FRAMES_PER_ACTION = 5
+        self.hitpoint = 2
+        self.hit = False
 
     def enter(self, e):
         self.dio.frame = 0
+        self.hit = False
 
     def exit(self, e):
         pass
@@ -264,9 +267,12 @@ class CrouchLA:
         self.TIME_PER_ACTION = 0.25
         self.ACTION_PER_TIME = 1.0 / self.TIME_PER_ACTION
         self.FRAMES_PER_ACTION = 5
+        self.hitpoint = 2
+        self.hit = False
 
     def enter(self, e):
         self.dio.frame = 0
+        self.hit = False
 
     def exit(self, e):
         pass
@@ -393,8 +399,20 @@ class DIO:
             x, y, w, h = DIO_Sprite['crouch'][frame_index]
         elif self.state_machine.cur_state == self.LIGHTATTACK:
             x, y, w, h = DIO_Sprite['lightattack'][frame_index]
+            w, h = w * 3, h * 3
+            extend = 80
+            if self.face_dir == 1:
+                return self.x - w // 2, self.y - h // 2, self.x + w // 2 + extend, self.y + h // 2
+            else:
+                return self.x - w // 2 - extend, self.y - h // 2, self.x + w // 2, self.y + h // 2
         elif self.state_machine.cur_state == self.CROUCH_LA:
             x, y, w, h = DIO_Sprite['crouch_la'][frame_index]
+            w, h = w * 3, h * 3
+            extend = 100
+            if self.face_dir == 1:
+                return self.x - w // 2, self.y - h // 2, self.x + w // 2 + extend, self.y + h // 2
+            else:
+                return self.x - w // 2 - extend, self.y - h // 2, self.x + w // 2, self.y + h // 2
         elif self.state_machine.cur_state == self.INTRO:
             x, y, w, h = DIO_Sprite['intro'][frame_index]
         else:
@@ -404,4 +422,13 @@ class DIO:
         return self.x - w // 2, self.y - h // 2, self.x + w // 2, self.y + h // 2
 
     def handle_collision(self, group, other):
-        pass
+        if group == 'DIO:JoJo':
+            attack_state = other.state_machine.cur_state
+            if attack_state == other.LIGHTATTACK or attack_state == other.CROUCH_LA:
+                if not attack_state.hit and int(other.frame) == attack_state.hitpoint:
+                    attack_state.hit = True
+                    if attack_state == other.LIGHTATTACK:
+                        self.hp -= 8
+                    elif attack_state == other.CROUCH_LA:
+                        self.hp -= 5
+                    self.point += 2
