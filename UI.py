@@ -4,7 +4,7 @@ class Health :
     def __init__(self, x, character, is_right=False):
         self.image = load_image('health.png')
         self.base_x = x
-        self.y = 1200 - 142 - 15 - 1 + 50
+        self.y = 1000 - 142 - 15 - 1 + 50
         self.character = character
         self.is_right = is_right  # 오른쪽 체력바인지
         self.max_width = 550
@@ -31,17 +31,17 @@ class HealthBar:
         self.image = load_image('healthbar.png')
 
     def draw(self):
-        self.image.draw(800, 1050, 1400, 202)
+        self.image.draw(800, 850, 1400, 202)
 
     def update(self):
         pass
 
 class Background:
     def __init__(self):
-        self.image = load_image('match_background.png')
+        self.image = load_image('cairo.jpg')
 
     def draw(self):
-        self.image.draw(800,600)
+        self.image.draw(800, 500, 1600, 1000)
 
     def update(self):
         pass
@@ -64,7 +64,7 @@ class Portraits:
         self.DIOIcon = load_image('DIO_fix.png')
 
     def draw(self):
-        self.JoJoIcon.clip_composite_draw(4734, 7750 - 7074, 100, 112, 0, 'h', 1430, 1030, 120, 134)
-        self. DIOIcon.clip_draw(2859 + 20, 10400 - 10377 + 70, 200, 154, 200, 1028, 180, 139)
+        self.JoJoIcon.clip_composite_draw(4734, 7750 - 7074, 100, 112, 0, 'h', 1430, 830, 120, 134)
+        self. DIOIcon.clip_draw(2859 + 20, 10400 - 10377 + 70, 200, 154, 200, 828, 180, 139)
     def update(self):
         pass
