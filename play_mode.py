@@ -7,15 +7,30 @@ from DIO import DIO
 
 jojo = None
 dio = None
+intro_played = False
+fight_signal = None
+signal_shown = False
 
 def init():
-    global jojo, dio
+    global jojo, dio, intro_played, fight_signal, signal_shown
 
     background = Background()
     game_world.add_object(background, 0)
 
     jojo = JoJo()
     dio = DIO()
+
+    if not intro_played:
+        jojo.state_machine.cur_state = jojo.INTRO
+        jojo.state_machine.cur_state.enter(('START', None))
+        dio.state_machine.cur_state = dio.INTRO
+        dio.state_machine.cur_state.enter(('START', None))
+        intro_played = True
+
+    signal_shown = False
+    fight_signal = FightSignal()
+    game_world.add_object(fight_signal, 3)
+
     player = [jojo, dio]
     game_world.add_objects(player, 2)
     game_world.add_collision_pair('DIO:JoJo', dio, None)
@@ -23,8 +38,8 @@ def init():
 
     healthbar = HealthBar()
     game_world.add_object(healthbar, 3)
-    p1_health = Health(406, dio, is_right=False)  # 왼쪽: DIO
-    p2_health = Health(1194, jojo, is_right=True)  # 오른쪽: JoJo
+    p1_health = Health(406, dio, is_right=False)
+    p2_health = Health(1194, jojo, is_right=True)
     health = [p1_health, p2_health]
     game_world.add_objects(health, 3)
     portraits = Portraits()
@@ -52,10 +67,18 @@ def handle_events():
             dio.handle_event(event)
 
 def update():
+    global fight_signal, signal_shown
     game_world.update()
     game_world.handle_collision()
+
+    if not signal_shown:
+        if jojo.state_machine.cur_state != jojo.INTRO and dio.state_machine.cur_state != dio.INTRO:
+            signal_shown = True
+            fight_signal.start()
+
 
 def draw():
     clear_canvas()
     game_world.render()
     update_canvas()
+

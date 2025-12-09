@@ -1,4 +1,5 @@
 from pico2d import load_image
+import game_framework
 
 class Health :
     def __init__(self, x, character, is_right=False):
@@ -68,3 +69,24 @@ class Portraits:
         self. DIOIcon.clip_draw(2859 + 20, 10400 - 10377 + 70, 200, 154, 200, 828, 180, 139)
     def update(self):
         pass
+
+class FightSignal:
+    def __init__(self):
+        self.image = load_image('fightsignal.png')
+        self.active = False
+        self.display_time = 0
+        self.duration = 1.0
+
+    def start(self):
+        self.active = True
+        self.display_time = 0
+
+    def update(self):
+        if self.active:
+            self.display_time += game_framework.frame_time
+            if self.display_time >= self.duration:
+                self.active = False
+
+    def draw(self):
+        if self.active:
+            self.image.draw(800, 500, 600, 400)
