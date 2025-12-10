@@ -2,6 +2,10 @@ from pico2d import *
 import game_framework
 import title_mode
 import play_mode
+import music
+
+global bgm
+bgm = None
 
 def init():
     global background, logo, logo_y, bkg, gogo, gogo_y, J, D
@@ -16,6 +20,7 @@ def init():
 
 def finish():
     pass
+
 
 def pause():
     pass

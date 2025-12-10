@@ -1,6 +1,7 @@
 from pico2d import load_image, draw_rectangle
 from sdl2 import SDL_KEYDOWN, SDL_KEYUP, SDLK_a, SDLK_d, SDLK_w, SDLK_s, SDLK_h, SDLK_f, SDLK_SPACE
 import json
+import music
 
 from state_machine import StateMachine
 import game_framework
@@ -261,6 +262,7 @@ class LightAttack:
     def enter(self, e):
         self.dio.frame = 0
         self.hit = False
+        music.play_random_dio_attack_sound()
 
     def exit(self, e):
         pass
@@ -290,6 +292,7 @@ class CrouchLA:
     def enter(self, e):
         self.dio.frame = 0
         self.hit = False
+        music.play_random_dio_attack_sound()
 
     def exit(self, e):
         pass
@@ -349,6 +352,8 @@ class Stand:
             self.dio.frame = 0
             self.hit = False
             self.damage_applied = False
+            sound = music.dio_theworld
+            sound.play()
         else:
             self.dio.state_machine.handle_state_event(('TIME_OUT', None))
 

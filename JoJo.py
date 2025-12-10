@@ -1,6 +1,7 @@
 from pico2d import load_image, get_time, draw_rectangle
 from sdl2 import SDL_KEYDOWN, SDL_KEYUP, SDLK_RIGHT, SDLK_LEFT, SDLK_UP, SDLK_DOWN, SDLK_RETURN, SDLK_SLASH
 import json
+import music
 
 from state_machine import StateMachine
 import game_world
@@ -225,6 +226,7 @@ class LightAttack:
     def enter(self, e):
         self.jojo.frame = 0
         self.hit = False
+        music.play_random_jojo_attack_sound()
 
     def exit(self, e):
         pass
@@ -292,6 +294,7 @@ class CrouchLA:
     def enter(self, e):
         self.jojo.frame = 0
         self.hit = False
+        music.play_random_jojo_attack_sound()
 
     def exit(self, e):
         pass
@@ -351,6 +354,8 @@ class Stand:
             self.jojo.frame = 0
             self.hit = False
             self.damage_applied = False
+            sound = music.dio_theworld
+            sound.play()
         else:
             self.jojo.state_machine.handle_state_event(('TIME_OUT', None))
 

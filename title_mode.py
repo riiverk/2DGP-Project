@@ -1,22 +1,19 @@
 from pico2d import *
 import game_framework
 import play_mode
-
-import os
-
-print("exists:", os.path.exists("Sound/giorno.ogg"))
-print("cwd:", os.getcwd())
-
+import music
 
 
 def init():
-    global background, logo, logo_y, bkg, gogo, gogo_y, J, D
+    global background, logo, logo_y, bkg, gogo, gogo_y, J, D, bgm, select_bgm
     J = load_image('JoJo_fix.png')
     D = load_image('DIO_fix.png')
     background = load_image('white.png')
     logo = load_image('logo.png')
     gogo = load_image('gogo.png')
-
+    bgm = music.title_bgm
+    select_bgm = music.select_bgm
+    bgm.repeat_play()
     logo_y = 1000
     bkg = False
     gogo_y = 400
@@ -31,6 +28,7 @@ def resume():
     pass
 
 def handle_events():
+    global bgm, select_bgm
     events = get_events()
     for event in events:
         if event.type == SDL_QUIT:
@@ -39,6 +37,9 @@ def handle_events():
             if event.key == SDLK_ESCAPE:
                 game_framework.quit()
             elif event.key == SDLK_RETURN:
+                bgm.pause()
+                select_bgm.play()
+                delay(1)
                 game_framework.change_mode(play_mode)
 
 def update():

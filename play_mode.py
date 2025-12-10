@@ -1,4 +1,6 @@
 from pico2d import *
+
+import music
 from UI import *
 import game_world
 import game_framework
@@ -17,13 +19,12 @@ dio_stand_active = False
 stand_timer = 0
 background = None
 game_over = False
-# bgm = load_wav('Sound/eyesofheaven.wav')
-# bgm.set_volume(128)
-# bgm.repeat_play()
 
 def init():
-    global jojo, dio, intro_played, fight_signal, signal_shown, background
+    global jojo, dio, intro_played, fight_signal, signal_shown, background, bgm
     global jojo_stand_active, dio_stand_active, stand_timer, fight_signal_was_active
+    bgm = music.play_bgm
+    bgm.repeat_play()
 
     jojo_stand_active = False
     dio_stand_active = False
@@ -109,10 +110,13 @@ def handle_events():
                 dio.handle_event(event)
 
 def update():
-    global fight_signal, signal_shown, jojo_stand_active, dio_stand_active, stand_timer, background, fight_signal_was_active, game_over
+    global fight_signal, signal_shown, jojo_stand_active, dio_stand_active, stand_timer, background, fight_signal_was_active, game_over, bgm
 
     if not game_over:
         if jojo.hp <= 0 or dio.hp <= 0:
+            bgm.pause()
+            bgm = music.result_bgm
+            bgm.repeat_play()
             game_over = True
             result_mode.handle_events()
             if jojo.hp < dio.hp:
@@ -171,6 +175,7 @@ def update():
             game_world.update()
             game_world.handle_collision()
     else:
+
         result_mode.handle_events()
         # if jojo.hp <= 0 or dio.hp <=0:
         #     game_framework.change_mode(result_mode)
