@@ -340,11 +340,13 @@ class Stand:
         self.ACTION_PER_TIME = 1.0 / self.TIME_PER_ACTION
         self.FRAMES_PER_ACTION = 11
         self.hitpoint = [1, 2]
+        self.hit = False
 
     def enter(self, e):
         if self.dio.point >= 20:
             self.dio.point -= 20
             self.dio.frame = 0
+            self.hit = False
         else:
             self.dio.state_machine.handle_state_event(('TIME_OUT', None))
 
@@ -501,5 +503,16 @@ class DIO:
                             self.hp -= 5
                     self.point += 5
                     other.point += 8
+                    if self.point > 40: self.point = 40
+                    if other.point > 40: other.point = 40
+            elif attack_state == other.STAND:
+                if not attack_state.hit and int(other.frame) in attack_state.hitpoint:
+                    attack_state.hit = True
+                    if self.state_machine.cur_state == self.CROUCH:
+                        self.hp -= 10
+                    else:
+                        self.hp -= 20
+                    self.point += 10
+                    other.point += 15
                     if self.point > 40: self.point = 40
                     if other.point > 40: other.point = 40
