@@ -17,6 +17,9 @@ dio_stand_active = False
 stand_timer = 0
 background = None
 game_over = False
+# bgm = load_wav('Sound/eyesofheaven.wav')
+# bgm.set_volume(128)
+# bgm.repeat_play()
 
 def init():
     global jojo, dio, intro_played, fight_signal, signal_shown, background

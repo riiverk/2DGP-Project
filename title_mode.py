@@ -2,6 +2,13 @@ from pico2d import *
 import game_framework
 import play_mode
 
+import os
+
+print("exists:", os.path.exists("Sound/giorno.ogg"))
+print("cwd:", os.getcwd())
+
+
+
 def init():
     global background, logo, logo_y, bkg, gogo, gogo_y, J, D
     J = load_image('JoJo_fix.png')
@@ -9,6 +16,7 @@ def init():
     background = load_image('white.png')
     logo = load_image('logo.png')
     gogo = load_image('gogo.png')
+
     logo_y = 1000
     bkg = False
     gogo_y = 400
