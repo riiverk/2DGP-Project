@@ -40,9 +40,14 @@ class HealthBar:
 class Background:
     def __init__(self):
         self.image = load_image('cairo.jpg')
+        self.skill = load_image('caironeg.jpg')
+        self.use_skill = False
 
     def draw(self):
-        self.image.draw(800, 500, 1600, 1000)
+        if self.use_skill:
+            self.skill.draw(800, 500, 1600, 1000)
+        else:
+            self.image.draw(800, 500, 1600, 1000)
 
     def update(self):
         pass
@@ -90,3 +95,30 @@ class FightSignal:
     def draw(self):
         if self.active:
             self.image.draw(800, 500, 600, 400)
+
+class Gauge:
+    def __init__(self, character, is_right = False):
+        self.image = load_image('gauge.png')
+        self.character = character
+        self.is_right = is_right
+        self.y = 850
+        self.max_width = 169
+
+    def draw(self):
+        if self.is_right:
+            self.image.clip_draw(2, 96 - 67 - 20, 188, 20, 1250, 850, 188, 20)
+        else:
+            self.image.clip_draw(2, 96 - 67 - 20, 188, 20, 350, 850, 188, 20)
+
+        ratio = min(self.character.point, 40) / 40
+        source_width = int(self.max_width * ratio)
+
+        if self.is_right:
+            x = 1326 - source_width // 2
+        else:
+            x = 270 + source_width // 2
+
+        self.image.clip_draw(4, 31, source_width, 10, x, self.y, source_width, 10)
+
+    def update(self):
+        pass
