@@ -32,26 +32,20 @@ def handle_events():
             if event.key == SDLK_ESCAPE:
                 game_framework.quit()
             elif event.key == SDLK_RETURN:
-                game_framework.change_mode(play_mode)
+                game_framework.change_mode(title_mode)
 
 def update():
-    global logo_y, gogo_y, bkg
-    LOGO_SPEED_PPS = 800
-    if logo_y > 500:
-        logo_y -= LOGO_SPEED_PPS * game_framework.frame_time
-    else:
-        bkg = True
-    if gogo_y < 900 and bkg:
-        gogo_y += 1
-
-
+    handle_events()
 
 def draw():
     clear_canvas()
     play_mode.draw()
+    winner = load_image('wintxt.png')
     if play_mode.jojo.hp > play_mode.dio.hp:    # 2P 승
+        winner.clip_draw(1536//2, 0, 1536//2, 364, 800, 600)
+    elif  play_mode.jojo.hp < play_mode.dio.hp:   # 1P 승
         pass
-    else    # 1P 승
+    else:    # draw
         pass
 
     update_canvas()
