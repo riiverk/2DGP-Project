@@ -1,5 +1,5 @@
 from pico2d import load_image, draw_rectangle
-from sdl2 import SDL_KEYDOWN, SDL_KEYUP, SDLK_a, SDLK_d, SDLK_w, SDLK_s, SDLK_h
+from sdl2 import SDL_KEYDOWN, SDL_KEYUP, SDLK_a, SDLK_d, SDLK_w, SDLK_s, SDLK_h, SDLK_f, SDLK_SPACE
 import json
 
 from state_machine import StateMachine
@@ -45,6 +45,10 @@ DIO_Sprite = {  # 디오 y는 src_y = 10400 - y - h로 draw
         (15, 1223, 50, 113), (72, 1224, 112, 112), (190, 1224, 86, 112), (282, 1223, 72, 113), (360, 1218, 67, 118)
     ], 'crouch_la': [
         (535, 1265, 98, 71), (638, 1267, 133, 70), (777, 1265, 105, 71), (888, 1264, 90, 72), (984, 1258, 79, 78)
+    ], 'stand': [
+        (9, 1073, 174, 129), (188, 1073, 174, 129), (369, 1072, 151, 130), (527, 1072, 151, 130), (685, 1072, 151, 130),
+        (842, 1072, 151, 130), (998, 1079, 128, 123), (1133, 1065, 102, 137), (1240, 1065, 103, 137), (1349, 1064, 95, 139),
+        (1451, 1063, 87, 139)
     ]
 }
 
@@ -90,6 +94,12 @@ def s_up(e):
 
 def h_down(e):
     return e[0] == 'INPUT' and e[1].type == SDL_KEYDOWN and e[1].key == SDLK_h
+
+def f_down(e):
+    return e[0] == 'INPUT' and e[1].type == SDL_KEYDOWN and e[1].key == SDLK_f
+
+def space_down(e):
+    return e[0] == 'INPUT' and e[1].type == SDL_KEYDOWN and e[1].key == SDLK_SPACE
 
 
 class Idle:
@@ -206,12 +216,14 @@ class Crouch:
         self.TIME_PER_ACTION = 0.35
         self.ACTION_PER_TIME = 1.0 / self.TIME_PER_ACTION
         self.FRAMES_PER_ACTION = 7
+        self.base_idle_h = 120
 
     def enter(self, e):
         self.dio.frame = 0
+        self.base_y = self.dio.y
 
     def exit(self, e):
-        pass
+        self.dio.y = self.base_y
 
     def do(self):
         self.dio.frame += self.FRAMES_PER_ACTION * self.ACTION_PER_TIME * game_framework.frame_time
@@ -224,6 +236,11 @@ class Crouch:
                 self.dio.state_machine.handle_state_event(('CROUCH_END_RUN', None))
             else:
                 self.dio.state_machine.handle_state_event(('TIME_OUT', None))
+
+        frame_index = int(self.dio.frame)
+        x, y, w, h = DIO_Sprite['crouch'][frame_index]
+        height_diff = (self.base_idle_h - h) * 3 / 2
+        self.dio.y = self.base_y - height_diff
 
     def draw(self):
         frame_index = int(self.dio.frame)
@@ -316,6 +333,36 @@ class Intro:
         self.dio.image.clip_draw(x, src_y, w, h, self.dio.x, self.dio.y, w * 3, h * 3)
 
 
+class Stand:
+    def __init__(self, dio):
+        self.dio = dio
+        self.TIME_PER_ACTION = 0.55
+        self.ACTION_PER_TIME = 1.0 / self.TIME_PER_ACTION
+        self.FRAMES_PER_ACTION = 11
+
+    def enter(self, e):
+        if self.dio.point >= 20:
+            self.dio.point -= 20
+            self.dio.frame = 0
+        else:
+            self.dio.state_machine.handle_state_event(('TIME_OUT', None))
+
+    def exit(self, e):
+        pass
+
+    def do(self):
+        self.dio.frame += self.FRAMES_PER_ACTION * self.ACTION_PER_TIME * game_framework.frame_time
+        if self.dio.frame >= 11:
+            self.dio.frame = 10.9
+            self.dio.state_machine.handle_state_event(('TIME_OUT', None))
+
+    def draw(self):
+        frame_index = int(self.dio.frame)
+        x, y, w, h = DIO_Sprite['stand'][frame_index]
+        src_y = self.dio.image_h - y - h
+        self.dio.image.clip_draw(x, src_y, w, h, self.dio.x, self.dio.y, w * 3, h * 3)
+
+
 class DIO:
     def __init__(self):
         self.x, self.y = 300, 200
@@ -339,24 +386,38 @@ class DIO:
         self.LIGHTATTACK = LightAttack(self)
         self.CROUCH_LA = CrouchLA(self)
         self.INTRO = Intro(self)
+        self.STAND = Stand(self)
         self.state_machine = StateMachine(
             self.IDLE,
             {
-                self.IDLE: {d_down: self.RUN, a_down: self.RUN, d_up: self.RUN, a_up: self.RUN, w_down: self.JUMP, s_down: self.CROUCH, h_down: self.LIGHTATTACK},
-                self.RUN: {d_up: self.IDLE, a_up: self.IDLE, d_down: self.IDLE, a_down: self.IDLE, w_down: self.JUMP, s_down: self.CROUCH, h_down: self.LIGHTATTACK},
+                self.IDLE: {d_down: self.RUN, a_down: self.RUN, d_up: self.RUN, a_up: self.RUN, w_down: self.JUMP, s_down: self.CROUCH, f_down: self.LIGHTATTACK, space_down: self.STAND},
+                self.RUN: {d_up: self.IDLE, a_up: self.IDLE, d_down: self.IDLE, a_down: self.IDLE, w_down: self.JUMP, s_down: self.CROUCH, f_down: self.LIGHTATTACK, space_down: self.STAND},
                 self.JUMP: {time_out: self.IDLE, jump_end_run: self.RUN},
-                self.CROUCH: {time_out: self.IDLE, h_down: self.CROUCH_LA, crouch_end_run: self.RUN},
+                self.CROUCH: {time_out: self.IDLE, f_down: self.CROUCH_LA, crouch_end_run: self.RUN},
                 self.LIGHTATTACK: {time_out: self.IDLE},
                 self.CROUCH_LA: {time_out: self.CROUCH},
-                self.INTRO: {time_out: self.IDLE}
+                self.INTRO: {time_out: self.IDLE},
+                self.STAND: {time_out: self.IDLE}
             }
         )
 
     def update(self):
         self.state_machine.update()
 
+    def reset_key_states(self):
+        self.a_pressed = False
+        self.d_pressed = False
+        self.s_pressed = False
+
     def handle_event(self, event):
         if self.state_machine.cur_state == self.INTRO:
+            if event.type == SDL_KEYUP:
+                if event.key == SDLK_a:
+                    self.a_pressed = False
+                elif event.key == SDLK_d:
+                    self.d_pressed = False
+                elif event.key == SDLK_s:
+                    self.s_pressed = False
             return
 
         if event.type == SDL_KEYDOWN:
@@ -428,7 +489,16 @@ class DIO:
                 if not attack_state.hit and int(other.frame) == attack_state.hitpoint:
                     attack_state.hit = True
                     if attack_state == other.LIGHTATTACK:
-                        self.hp -= 8
+                        if self.state_machine.cur_state == self.CROUCH:
+                            self.hp -= 4
+                        else:
+                            self.hp -= 8
                     elif attack_state == other.CROUCH_LA:
-                        self.hp -= 5
-                    self.point += 2
+                        if self.state_machine.cur_state == self.CROUCH:
+                            self.hp -= 3
+                        else:
+                            self.hp -= 5
+                    self.point += 5
+                    other.point += 8
+                    if self.point > 40: self.point = 40
+                    if other.point > 40: other.point = 40

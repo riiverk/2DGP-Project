@@ -1,5 +1,5 @@
 from pico2d import load_image, get_time, draw_rectangle
-from sdl2 import SDL_KEYDOWN, SDL_KEYUP, SDLK_RIGHT, SDLK_LEFT, SDLK_UP, SDLK_DOWN, SDLK_RETURN
+from sdl2 import SDL_KEYDOWN, SDL_KEYUP, SDLK_RIGHT, SDLK_LEFT, SDLK_UP, SDLK_DOWN, SDLK_RETURN, SDLK_SLASH
 import json
 
 from state_machine import StateMachine
@@ -52,6 +52,13 @@ JoJo_Sprite = {
     ], 'crouch_la': [
         (827, 2022, 97, 69), (932, 2024, 112, 67), (1050, 2019, 141, 72), (1199, 2008, 108, 81),
         (1314, 2007, 100, 82), (1423, 2011, 97, 78), (1527, 2011, 96, 78), (1633, 2016, 91, 75)
+    ], 'stand': [
+        (4, 2342, 95, 112), (107, 2342, 92, 112), (208, 2352, 130, 101), (350, 2332, 162, 121), (522, 2336, 152, 117),
+        (683, 2351, 166, 102), (859, 2346, 160, 108), (1027, 2346, 161, 108), (1199, 2346, 119, 108), (1329, 2346, 117, 108),
+        (1456, 2346, 112, 108), (1582, 2346, 117, 108), (1709, 2346, 121, 108), (1840, 2346, 114, 108), (1964, 2346, 119, 108),
+        (2094, 2346, 113, 108), (2217, 2346, 113, 108), (2342, 2346, 116, 108), (2474, 2346, 116, 108), (2603, 2346, 125, 108),
+        (2738, 2346, 105, 108), (2852, 2342, 90, 112), (2948, 2337, 86, 117), (3043, 2337, 78, 117), (3130, 2337, 80, 117),
+        (3221, 2337, 75, 117), (3304, 2337, 71, 117), (3383, 2337, 69, 117), (3460, 2337, 65, 117), (3534, 2337, 64, 117)
     ]
 }
 
@@ -90,6 +97,8 @@ def crouch_end_run(e):
 def enter_down(e):
     return e[0] == 'INPUT' and e[1].type == SDL_KEYDOWN and e[1].key == SDLK_RETURN
 
+def slash_down(e):
+    return e[0] == 'INPUT' and e[1].type == SDL_KEYDOWN and e[1].key == SDLK_SLASH
 
 def down_down(e):
     return e[0] == 'INPUT' and e[1].type == SDL_KEYDOWN and e[1].key == SDLK_DOWN
@@ -239,12 +248,14 @@ class Crouch:
         self.TIME_PER_ACTION = 1.0
         self.ACTION_PER_TIME = 1.0 / self.TIME_PER_ACTION
         self.FRAMES_PER_ACTION = 16
+        self.base_idle_h = 117
 
     def enter(self, e):
         self.jojo.frame = 0
+        self.base_y = self.jojo.y
 
     def exit(self, e):
-        pass
+        self.jojo.y = self.base_y
 
     def do(self):
         self.jojo.frame += self.FRAMES_PER_ACTION * self.ACTION_PER_TIME * game_framework.frame_time
@@ -257,6 +268,11 @@ class Crouch:
                 self.jojo.state_machine.handle_state_event(('CROUCH_END_RUN', None))
             else:
                 self.jojo.state_machine.handle_state_event(('TIME_OUT', None))
+
+        frame_index = int(self.jojo.frame)
+        x, y, w, h = JoJo_Sprite['crouch'][frame_index]
+        height_diff = (self.base_idle_h - h) * 3 / 2
+        self.jojo.y = self.base_y - height_diff
 
     def draw(self):
         frame_index = int(self.jojo.frame)
@@ -319,6 +335,37 @@ class Intro:
         self.jojo.image.clip_composite_draw(x, src_y, w, h, 0, 'h', self.jojo.x, self.jojo.y, w * 3, h * 3)
 
 
+class Stand:
+    def __init__(self, jojo):
+        self.jojo = jojo
+        self.TIME_PER_ACTION = 1.5
+        self.ACTION_PER_TIME = 1.0 / self.TIME_PER_ACTION
+        self.FRAMES_PER_ACTION = 30
+        self.hitpoint = [2, 3, 4, 5, 6]
+
+    def enter(self, e):
+        if self.jojo.point >= 20:
+            self.jojo.point -= 20
+            self.jojo.frame = 0
+        else:
+            self.jojo.state_machine.handle_state_event(('TIME_OUT', None))
+
+    def exit(self, e):
+        pass
+
+    def do(self):
+        self.jojo.frame += self.FRAMES_PER_ACTION * self.ACTION_PER_TIME * game_framework.frame_time
+        if self.jojo.frame >= 30:
+            self.jojo.frame = 29.9
+            self.jojo.state_machine.handle_state_event(('TIME_OUT', None))
+
+    def draw(self):
+        frame_index = int(self.jojo.frame)
+        x, y, w, h = JoJo_Sprite['stand'][frame_index]
+        src_y = self.jojo.image_h - y - h
+        self.jojo.image.clip_composite_draw(x, src_y, w, h, 0, 'h', self.jojo.x, self.jojo.y, w * 3, h * 3)
+
+
 class JoJo:
     def __init__(self):
         self.x, self.y = 1300, 200
@@ -342,24 +389,38 @@ class JoJo:
         self.CROUCH = Crouch(self)
         self.CROUCH_LA = CrouchLA(self)
         self.INTRO = Intro(self)
+        self.STAND = Stand(self)
         self.state_machine = StateMachine(
             self.IDLE,
             {
-                self.IDLE: {right_down: self.RUN, left_down: self.RUN, right_up: self.RUN, left_up: self.RUN, up_down: self.JUMP, enter_down: self.LIGHTATTACK, down_down: self.CROUCH},
-                self.RUN: {right_up: self.IDLE, left_up: self.IDLE, right_down: self.IDLE, left_down: self.IDLE, up_down: self.JUMP, enter_down: self.LIGHTATTACK, down_down: self.CROUCH},
+                self.IDLE: {right_down: self.RUN, left_down: self.RUN, right_up: self.RUN, left_up: self.RUN, up_down: self.JUMP, slash_down: self.LIGHTATTACK, down_down: self.CROUCH, enter_down: self.STAND},
+                self.RUN: {right_up: self.IDLE, left_up: self.IDLE, right_down: self.IDLE, left_down: self.IDLE, up_down: self.JUMP, slash_down: self.LIGHTATTACK, down_down: self.CROUCH, enter_down: self.STAND},
                 self.JUMP: {time_out: self.IDLE, jump_end_run: self.RUN},
                 self.LIGHTATTACK: {time_out: self.IDLE},
-                self.CROUCH: {time_out: self.IDLE, enter_down: self.CROUCH_LA, crouch_end_run: self.RUN},
+                self.CROUCH: {time_out: self.IDLE, slash_down: self.CROUCH_LA, crouch_end_run: self.RUN},
                 self.CROUCH_LA: {time_out: self.CROUCH},
-                self.INTRO: {time_out: self.IDLE}
+                self.INTRO: {time_out: self.IDLE},
+                self.STAND: {time_out: self.IDLE}
             }
         )
 
     def update(self):
         self.state_machine.update()
 
+    def reset_key_states(self):
+        self.left_pressed = False
+        self.right_pressed = False
+        self.down_pressed = False
+
     def handle_event(self, event):
         if self.state_machine.cur_state == self.INTRO:
+            if event.type == SDL_KEYUP:
+                if event.key == SDLK_LEFT:
+                    self.left_pressed = False
+                elif event.key == SDLK_RIGHT:
+                    self.right_pressed = False
+                elif event.key == SDLK_DOWN:
+                    self.down_pressed = False
             return
 
         if event.type == SDL_KEYDOWN:
@@ -434,10 +495,17 @@ class JoJo:
                 if not attack_state.hit and int(other.frame) == attack_state.hitpoint:
                     attack_state.hit = True
                     if attack_state == other.LIGHTATTACK:
-                        self.hp -= 8
+                        if self.state_machine.cur_state == self.CROUCH:
+                            self.hp -= 4
+                        else: self.hp -= 8
                     elif attack_state == other.CROUCH_LA:
-                        self.hp -= 5
-                    self.point += 2
+                        if self.state_machine.cur_state == self.CROUCH:
+                            self.hp -= 3
+                        else: self.hp -= 5
+                    self.point += 5
+                    other.point += 8
+                    if self.point > 40: self.point = 40
+                    if other.point > 40: other.point = 40
 
 
 
