@@ -449,7 +449,7 @@ class JoJo:
 
     def draw(self):
         self.state_machine.draw()
-        draw_rectangle(*self.get_bb())
+        # draw_rectangle(*self.get_bb())
 
     def get_bb(self):
         frame_index = int(self.frame)
