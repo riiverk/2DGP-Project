@@ -339,6 +339,7 @@ class Stand:
         self.TIME_PER_ACTION = 0.55
         self.ACTION_PER_TIME = 1.0 / self.TIME_PER_ACTION
         self.FRAMES_PER_ACTION = 11
+        self.hitpoint = [1, 2]
 
     def enter(self, e):
         if self.dio.point >= 20:
