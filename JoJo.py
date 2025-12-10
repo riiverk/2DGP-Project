@@ -343,12 +343,14 @@ class Stand:
         self.FRAMES_PER_ACTION = 30
         self.hitpoint = [2, 3, 4, 5, 6]
         self.hit = False
+        self.damage_applied = False
 
     def enter(self, e):
         if self.jojo.point >= 20:
             self.jojo.point -= 20
             self.jojo.frame = 0
             self.hit = False
+            self.damage_applied = False
         else:
             self.jojo.state_machine.handle_state_event(('TIME_OUT', None))
 
@@ -484,6 +486,15 @@ class JoJo:
         elif self.state_machine.cur_state == self.INTRO:
             x, y, w, h = JoJo_Sprite['intro'][frame_index]
             y = 7750 - y - h
+        elif self.state_machine.cur_state == self.STAND:
+            x, y, w, h = JoJo_Sprite['stand'][frame_index]
+            y = 7750 - y - h
+            w, h = w * 3, h * 3
+            extend = 150
+            if self.face_dir == -1:
+                return self.x - w // 2 - extend, self.y - h // 2, self.x + w // 2, self.y + h // 2
+            else:
+                return self.x - w // 2, self.y - h // 2, self.x + w // 2 + extend, self.y + h // 2
         else:
             x, y, w, h = JoJo_Sprite['idle'][0]
 
@@ -511,10 +522,10 @@ class JoJo:
             elif attack_state == other.STAND:
                 if not attack_state.hit and int(other.frame) in attack_state.hitpoint:
                     attack_state.hit = True
-                    if self.state_machine.cur_state == self.CROUCH:
-                        self.hp -= 10
-                    else:
-                        self.hp -= 20
+                last_frame = attack_state.FRAMES_PER_ACTION - 1
+                if attack_state.hit and int(other.frame) == last_frame and not attack_state.damage_applied:
+                    attack_state.damage_applied = True
+                    self.hp -= 15
                     self.point += 10
                     other.point += 15
                     if self.point > 40: self.point = 40
