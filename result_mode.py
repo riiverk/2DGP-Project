@@ -39,12 +39,11 @@ def update():
 
 def draw():
     clear_canvas()
-    play_mode.draw()
     winner = load_image('wintxt.png')
     if play_mode.jojo.hp > play_mode.dio.hp:    # 2P 승
         winner.clip_draw(1536//2, 0, 1536//2, 364, 800, 600)
     elif  play_mode.jojo.hp < play_mode.dio.hp:   # 1P 승
-        pass
+        winner.clip_draw(0, 0, 1536//2, 364, 800, 600)
     else:    # draw
         pass
 

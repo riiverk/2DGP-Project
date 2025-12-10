@@ -16,6 +16,7 @@ jojo_stand_active = False
 dio_stand_active = False
 stand_timer = 0
 background = None
+game_over = False
 
 def init():
     global jojo, dio, intro_played, fight_signal, signal_shown, background
@@ -105,60 +106,83 @@ def handle_events():
                 dio.handle_event(event)
 
 def update():
-    global fight_signal, signal_shown, jojo_stand_active, dio_stand_active, stand_timer, background, fight_signal_was_active
+    global fight_signal, signal_shown, jojo_stand_active, dio_stand_active, stand_timer, background, fight_signal_was_active, game_over
 
-    # Intro 종료 감지 및 키 상태 초기화
-    if not signal_shown:
-        if jojo.state_machine.cur_state != jojo.INTRO and dio.state_machine.cur_state != dio.INTRO:
-            signal_shown = True
-            fight_signal.start()
-            jojo.reset_key_states()
-            dio.reset_key_states()
+    if not game_over:
+        if jojo.hp <= 0 or dio.hp <= 0:
+            game_over = True
+            result_mode.handle_events()
+            if jojo.hp < dio.hp:
+                game_world.remove_object(jojo)
+                dio.x = 800
+                dio.state_machine.cur_state = dio.IDLE
+            else:
+                game_world.remove_object(dio)
+                jojo.x = 800
+                jojo.state_machine.cur_state = jojo.IDLE
 
-    # Fight signal 종료 감지 및 키 상태 초기화
-    if fight_signal_was_active and not fight_signal.active:
-        jojo.reset_key_states()
-        dio.reset_key_states()
-    fight_signal_was_active = fight_signal.active
+        else:
+            # Intro 종료 감지 및 키 상태 초기화
+            if not signal_shown:
+                if jojo.state_machine.cur_state != jojo.INTRO and dio.state_machine.cur_state != dio.INTRO:
+                    signal_shown = True
+                    fight_signal.start()
+                    jojo.reset_key_states()
+                    dio.reset_key_states()
 
-    jojo_in_stand = jojo.state_machine.cur_state == jojo.STAND
-    dio_in_stand = dio.state_machine.cur_state == dio.STAND
+            # Fight signal 종료 감지 및 키 상태 초기화
+            if fight_signal_was_active and not fight_signal.active:
+                jojo.reset_key_states()
+                dio.reset_key_states()
+            fight_signal_was_active = fight_signal.active
 
-    if jojo_in_stand and not jojo_stand_active:
-        jojo_stand_active = True
-        stand_timer = 5.0
-        background.use_skill = True
+            jojo_in_stand = jojo.state_machine.cur_state == jojo.STAND
+            dio_in_stand = dio.state_machine.cur_state == dio.STAND
 
-    if dio_in_stand and not dio_stand_active:
-        dio_stand_active = True
-        stand_timer = 5.0
-        background.use_skill = True
+            if jojo_in_stand and not jojo_stand_active:
+                jojo_stand_active = True
+                stand_timer = 5.0
+                background.use_skill = True
 
-    if not jojo_in_stand and jojo_stand_active and stand_timer > 0:
-        pass
+            if dio_in_stand and not dio_stand_active:
+                dio_stand_active = True
+                stand_timer = 5.0
+                background.use_skill = True
 
-    if not dio_in_stand and dio_stand_active and stand_timer > 0:
-        pass
+            if not jojo_in_stand and jojo_stand_active and stand_timer > 0:
+                pass
 
-    if stand_timer > 0:
-        stand_timer -= game_framework.frame_time
-        if stand_timer <= 0:
-            jojo_stand_active = False
-            dio_stand_active = False
-            background.use_skill = False
-            stand_timer = 0
-            jojo.reset_key_states()
-            dio.reset_key_states()
+            if not dio_in_stand and dio_stand_active and stand_timer > 0:
+                pass
 
-    game_world.update()
-    game_world.handle_collision()
+            if stand_timer > 0:
+                stand_timer -= game_framework.frame_time
+                if stand_timer <= 0:
+                    jojo_stand_active = False
+                    dio_stand_active = False
+                    background.use_skill = False
+                    stand_timer = 0
+                    jojo.reset_key_states()
+                    dio.reset_key_states()
 
-    if jojo.hp <= 0 or dio.hp <=0:
-        game_framework.change_mode(result_mode)
+            game_world.update()
+            game_world.handle_collision()
+    else:
+        result_mode.handle_events()
+        # if jojo.hp <= 0 or dio.hp <=0:
+        #     game_framework.change_mode(result_mode)
 
 
 def draw():
     clear_canvas()
     game_world.render()
+    if game_over:
+        winner = load_image('wintxt.png')
+        if jojo.hp > dio.hp:  # 2P 승
+            winner.clip_draw(1536 // 2, 0, 1536 // 2, 364, 900, 600)
+        elif jojo.hp < dio.hp:  # 1P 승
+            winner.clip_draw(0, 0, 1536 // 2, 364, 900, 600)
+        else:  # draw
+            pass
     update_canvas()
 
